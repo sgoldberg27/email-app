@@ -1,0 +1,11 @@
+# JavaScript Packages
+node_modules/
+
+# Typescript build output
+dist/
+
+# Test requests
+test.rest
+
+# Database Files
+db/
