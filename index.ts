@@ -1,5 +1,5 @@
 import express from "express"
-import { getFolders, getMessages } from "./db";
+import { getFolders, getMessages, deleteMessages } from "./db";
 
 const app = express()
 const port = 3000
@@ -22,4 +22,10 @@ app.get("/:usuario/api/messages/important", async (req, res) => {
     let subject = req.query.subject;
 
     res.send(await getMessages(from, to, subject));
+});
+
+// Delete messages
+app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
+    let id = req.params.id;
+    res.send(await deleteMessages(id));
 });

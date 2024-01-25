@@ -54,12 +54,27 @@ export async function getMessages(from_name: any, to_name: any, subject: any) {
         const hasToName = message.to.some((to) => to.name.includes(to_name));
         const hasSubject = message.subject.includes(subject);
 
-        console.log(hasFromName, hasToName, hasSubject);
-
         return hasFromName && hasToName && hasSubject;
     });
 
     return filteredMessages;
 
 
+}
+
+export async function deleteMessages(id: any) {
+    const messagesFile = await fs.readFile("./db/important.json", "utf-8");
+    const messagesJson = JSON.parse(messagesFile);
+
+    const messages = messagesJson["data"] as Message[];
+
+    const filteredMessages = messages.filter((message) => {
+        return message.id !== id;
+    });
+
+    messagesJson["data"] = filteredMessages;
+
+    await fs.writeFile("./db/important.json", JSON.stringify(messagesJson));
+
+    return "OK";
 }
