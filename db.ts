@@ -27,10 +27,9 @@ type Message = {
     hasAttachments: boolean;
     attachments: {
         type: string;
-        fileName: string;
-        preview: string;
-        url: string;
+        name: string;
         size: string;
+        url: string;
     }[];
     labels: string[];
 };
@@ -90,8 +89,6 @@ export async function deleteMessages(id: any) {
 }
 
 export async function createMessages(newMessage: any) {
-    console.log(newMessage);
-
     const importantFile = await fs.readFile("./db/important.json", "utf-8");
     const importantJson = JSON.parse(importantFile);
 
