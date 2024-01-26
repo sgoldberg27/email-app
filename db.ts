@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+import { v4 as uuidv4 } from 'uuid';
 
 type Folder = {
     id: number;
@@ -8,7 +9,7 @@ type Folder = {
 };
 
 type Message = {
-    id: number;
+    id: string;
     from: {
         name: string;
         avatar: string;
@@ -88,3 +89,21 @@ export async function deleteMessages(id: any) {
     return "OK"
 }
 
+export async function createMessages(newMessage: any) {
+    console.log(newMessage);
+
+    const importantFile = await fs.readFile("./db/important.json", "utf-8");
+    const importantJson = JSON.parse(importantFile);
+
+    const importantMessages = importantJson["data"] as Message[];
+    
+    const newId = uuidv4();
+    newMessage["id"] = newId;
+
+    importantMessages.push(newMessage);
+
+    importantJson["data"] = importantMessages;
+    await fs.writeFile("./db/important.json", JSON.stringify(importantJson));
+
+    return newMessage;
+}

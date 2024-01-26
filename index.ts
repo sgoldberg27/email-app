@@ -45,10 +45,13 @@ app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
     }
 });
 
+app.use(express.json());
+
 // Create messages
 app.post("/:usuario/api/messages/important", async (req, res) => {
     try {
         let message = req.body;
+        console.log(message);
         res.send(await createMessages(message));
     } catch (error) {
         console.error("Error getting folders", error);
