@@ -1,5 +1,5 @@
 import express from "express"
-import { getFolders, getMessages, deleteMessages } from "./db";
+import { getFolders, getMessages, deleteMessages, createMessages } from "./db";
 
 const app = express()
 const port = 3000
@@ -29,3 +29,4 @@ app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
     let id = req.params.id;
     res.send(await deleteMessages(id));
 });
+

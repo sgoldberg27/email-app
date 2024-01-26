@@ -58,8 +58,6 @@ export async function getMessages(from_name: any, to_name: any, subject: any) {
     });
 
     return filteredMessages;
-
-
 }
 
 export async function deleteMessages(id: any) {
@@ -68,13 +66,25 @@ export async function deleteMessages(id: any) {
 
     const messages = messagesJson["data"] as Message[];
 
-    const filteredMessages = messages.filter((message) => {
-        return message.id !== id;
-    });
+    const deletedMessage = messages.find((message) => message.id === id);
+    const filteredMessages = messages.filter((message) => message.id !== id);
 
     messagesJson["data"] = filteredMessages;
-
     await fs.writeFile("./db/important.json", JSON.stringify(messagesJson));
 
-    return "OK";
+    if (deletedMessage) {
+        const trashFile = await fs.readFile("./db/trash.json", "utf-8");
+        const trashJson = JSON.parse(trashFile);
+
+        const trashMessages = trashJson["data"] as Message[];
+        trashMessages.push(deletedMessage);
+
+        trashJson["data"] = trashMessages;
+        await fs.writeFile("./db/trash.json", JSON.stringify(trashJson));
+    } else{
+        return "No se encontro el mensaje"
+    }
+
+    return "OK"
 }
+
