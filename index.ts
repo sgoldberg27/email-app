@@ -8,25 +8,50 @@ app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 });
 
+
 // Get all folders
 app.get("/:usuario/api/folders", async (req, res) => {
-    res.send(await getFolders());
+    try {
+        res.send(await getFolders());
+    } catch (error) {
+        console.error("Error getting folders", error);
+        res.status(500).send("Internal server error");
+    }
 });
 
 
 // Get the list of messages
 app.get("/:usuario/api/messages/important", async (req, res) => {
-
-    let from = req.query.from;
-    let to = req.query.to;
-    let subject = req.query.subject;
-
-    res.send(await getMessages(from, to, subject));
+    try {
+        let from = req.query.from;
+        let to = req.query.to;
+        let subject = req.query.subject;
+    
+        res.send(await getMessages(from, to, subject));
+    } catch (error) {
+        console.error("Error getting messages", error);
+        res.status(500).send("Internal server error");
+    }
 });
 
 // Delete messages
 app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
-    let id = req.params.id;
-    res.send(await deleteMessages(id));
+    try {
+        let id = req.params.id;
+        res.send(await deleteMessages(id));
+    } catch (error) {
+        console.error("Error deleting messages", error);
+        res.status(500).send("Internal server error");
+    }
 });
 
+// Create messages
+app.post("/:usuario/api/messages/important", async (req, res) => {
+    try {
+        let message = req.body;
+        res.send(await createMessages(message));
+    } catch (error) {
+        console.error("Error getting folders", error);
+        res.status(500).send("Internal server error");
+    }
+});
