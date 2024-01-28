@@ -59,6 +59,11 @@ app.post("/:usuario/api/messages/important", async (req, res) => {
         res.send(await createMessages(message));
     } catch (error) {
         console.error("Error creating message", error);
-        res.status(400).send("Bad request");
+        if (error instanceof CustomError) {
+            res.status(error.status).send(error.message);
+        } else {
+            res.status(500).send("Internal server error");
+        }
+
     }
 });

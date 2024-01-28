@@ -43,18 +43,24 @@ type Folder = {
     icon: string;
 };
 
-export async function getFolders() {
-    const foldersFile = await fs.readFile("./db/folders.json", "utf-8");
-    const foldersJson = JSON.parse(foldersFile);
-
-    return foldersJson["data"] as Folder[];
+async function readFile(filePath: string) {
+    const dataFile = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(dataFile);
 
 }
 
-export async function getMessages(from_name: string, to_name: string, subject: string) {
-    const messagesFile = await fs.readFile("./db/important.json", "utf-8");
-    const messagesJson = JSON.parse(messagesFile);
+async function writeFile(filePath: string, data: any) {
+    await fs.writeFile(filePath, JSON.stringify(data));
+}
 
+
+export async function getFolders() {
+    const foldersJson = await readFile("./db/folders.json");
+    return foldersJson["data"] as Folder[];
+}
+
+export async function getMessages(from_name: string, to_name: string, subject: string) {
+    const messagesJson = await readFile("./db/important.json");
     const messages = messagesJson["data"] as Message[];
 
     const filteredMessages = messages.filter((message) => {
@@ -69,19 +75,17 @@ export async function getMessages(from_name: string, to_name: string, subject: s
 }
 
 async function sendToTrash(message: Message) {
-    const trashFile = await fs.readFile("./db/trash.json", "utf-8");
-    const trashJson = JSON.parse(trashFile);
+    const trashJson = await readFile("./db/trash.json");
 
     const trashMessages = trashJson["data"] as Message[];
     trashMessages.push(message);
 
     trashJson["data"] = trashMessages;
-    await fs.writeFile("./db/trash.json", JSON.stringify(trashJson));
+    await writeFile("./db/trash.json", trashJson);
 }
 
 export async function deleteMessages(id: string) {
-    const messagesFile = await fs.readFile("./db/important.json", "utf-8");
-    const messagesJson = JSON.parse(messagesFile);
+    const messagesJson = await readFile("./db/important.json");
 
     const messages = messagesJson["data"] as Message[];
 
@@ -89,7 +93,7 @@ export async function deleteMessages(id: string) {
     const filteredMessages = messages.filter((message) => message.id !== id);
 
     messagesJson["data"] = filteredMessages;
-    await fs.writeFile("./db/important.json", JSON.stringify(messagesJson));
+    await writeFile("./db/important.json", messagesJson);
 
     if (deletedMessage) {
         await sendToTrash(deletedMessage);
@@ -100,18 +104,21 @@ export async function deleteMessages(id: string) {
 }
 
 export async function createMessages(newMessage: Message) {
-    const importantFile = await fs.readFile("./db/important.json", "utf-8");
-    const importantJson = JSON.parse(importantFile);
+    newMessage["id"] = uuidv4();
+    const validationResult = MessageSchema.safeParse(newMessage);
 
-    const importantMessages = importantJson["data"] as Message[];
-    
-    const newId = uuidv4();
-    newMessage["id"] = newId;
+    if(validationResult.success) {
+        const importantJson = await readFile("./db/important.json");
 
-    importantMessages.push(newMessage);
+        const importantMessages = importantJson["data"] as Message[];
 
-    importantJson["data"] = importantMessages;
-    await fs.writeFile("./db/important.json", JSON.stringify(importantJson));
+        importantMessages.push(newMessage);
 
-    return newMessage;
+        importantJson["data"] = importantMessages;
+        await writeFile("./db/important.json", importantJson);
+
+        return newMessage;
+    } else {
+        throw new CustomError("Invalid message body", 400);
+    }
 }
