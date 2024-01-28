@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import { v4 as uuidv4 } from 'uuid';
 import { z } from "zod";
 
+// Class to create custom errors
 export class CustomError extends Error {
     public message: string;
     public status: number;
@@ -43,22 +44,25 @@ type Folder = {
     icon: string;
 };
 
+// Function to read the contents of a JSON file
 async function readFile(filePath: string) {
     const dataFile = await fs.readFile(filePath, "utf-8");
     return JSON.parse(dataFile);
 
 }
 
+// Function to write a JSON file
 async function writeFile(filePath: string, data: any) {
     await fs.writeFile(filePath, JSON.stringify(data));
 }
 
-
+// Function to get all folders
 export async function getFolders() {
     const foldersJson = await readFile("./db/folders.json");
     return foldersJson["data"] as Folder[];
 }
 
+// Function to get the list of messages that match the search criteria
 export async function getMessages(from_name: string, to_name: string, subject: string) {
     const messagesJson = await readFile("./db/important.json");
     const messages = messagesJson["data"] as Message[];
@@ -74,6 +78,7 @@ export async function getMessages(from_name: string, to_name: string, subject: s
     return filteredMessages;
 }
 
+// Function to send a message to the trash folder
 async function sendToTrash(message: Message) {
     const trashJson = await readFile("./db/trash.json");
 
@@ -84,6 +89,7 @@ async function sendToTrash(message: Message) {
     await writeFile("./db/trash.json", trashJson);
 }
 
+// Function to delete a message
 export async function deleteMessages(id: string) {
     const messagesJson = await readFile("./db/important.json");
 
@@ -103,6 +109,7 @@ export async function deleteMessages(id: string) {
     }
 }
 
+// Function to create a message
 export async function createMessages(newMessage: Message) {
     newMessage["id"] = uuidv4();
     const validationResult = MessageSchema.safeParse(newMessage);
