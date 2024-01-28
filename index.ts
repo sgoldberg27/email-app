@@ -1,5 +1,5 @@
 import express from "express"
-import { getFolders, getMessages, deleteMessages, createMessages } from "./db";
+import { getFolders, getMessages, deleteMessages, createMessages, CustomError } from "./db";
 import type { Message } from "./db"; 
 
 const app = express()
@@ -37,15 +37,16 @@ app.get("/:usuario/api/messages/important", async (req, res) => {
 
 // Delete messages
 app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
-    let id = req.params.id as string;
-
-    let response = await deleteMessages(id);
-
-    if (response.length == 0) {
-        res.status(404).send("No se encontro el mensaje");
-    } else {
-    
-        res.send(response);
+    try {
+        let id = req.params.id as string;
+        res.send(await deleteMessages(id));
+    } catch (error) {
+        console.error("Error deleting message", error);
+        if (error instanceof CustomError) {
+            res.status(error.status).send(error.message);
+        } else {
+            res.status(500).send("Internal server error");
+        }
     }
 });
 

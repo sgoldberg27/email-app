@@ -1,39 +1,47 @@
 import { promises as fs } from "fs";
 import { v4 as uuidv4 } from 'uuid';
+import { z } from "zod";
 
-interface Folder {
+export class CustomError extends Error {
+    public message: string;
+    public status: number;
+
+    constructor(message: string, status: number) {
+        super();
+        this.message = message;
+        this.status = status;
+    }
+}
+
+const MessageSchema = z.object({
+    id: z.string(),
+    from: z.object({
+        name: z.string(),
+        avatar: z.string(),
+        email: z.string(),
+    }),
+    to: z.array(z.object({
+        name: z.string(),
+        email: z.string(),
+    })),
+    subject: z.string(),
+    message: z.string(),
+    time: z.string(),
+    read: z.boolean(),
+    important: z.boolean(),
+    hasAttachments: z.boolean(),
+    labels: z.array(z.string()),
+});
+
+export type Message = z.infer<typeof MessageSchema>;
+
+
+type Folder = {
     id: number;
     name: string;
     title: string;
     icon: string;
 };
-
-export interface Message {
-    id: string;
-    from: {
-        name: string;
-        avatar: string;
-        email: string;
-    };
-    to: {
-        name: string;
-        email: string;
-    }[];
-    subject: string;
-    message: string;
-    time: string;
-    read: boolean;
-    important: boolean;
-    hasAttachments: boolean;
-    attachments: {
-        type: string;
-        name: string;
-        size: string;
-        url: string;
-    }[];
-    labels: string[];
-};
-
 
 export async function getFolders() {
     const foldersFile = await fs.readFile("./db/folders.json", "utf-8");
@@ -87,7 +95,7 @@ export async function deleteMessages(id: string) {
         await sendToTrash(deletedMessage);
         return "OK";
     } else {
-        throw new Error("No se encontro el mensaje");
+        throw new CustomError("No se encontro el mensaje", 404);
     }
 }
 
