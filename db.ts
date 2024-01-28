@@ -60,6 +60,17 @@ export async function getMessages(from_name: string, to_name: string, subject: s
     return filteredMessages;
 }
 
+async function sendToTrash(message: Message) {
+    const trashFile = await fs.readFile("./db/trash.json", "utf-8");
+    const trashJson = JSON.parse(trashFile);
+
+    const trashMessages = trashJson["data"] as Message[];
+    trashMessages.push(message);
+
+    trashJson["data"] = trashMessages;
+    await fs.writeFile("./db/trash.json", JSON.stringify(trashJson));
+}
+
 export async function deleteMessages(id: string) {
     const messagesFile = await fs.readFile("./db/important.json", "utf-8");
     const messagesJson = JSON.parse(messagesFile);
@@ -73,19 +84,11 @@ export async function deleteMessages(id: string) {
     await fs.writeFile("./db/important.json", JSON.stringify(messagesJson));
 
     if (deletedMessage) {
-        const trashFile = await fs.readFile("./db/trash.json", "utf-8");
-        const trashJson = JSON.parse(trashFile);
-
-        const trashMessages = trashJson["data"] as Message[];
-        trashMessages.push(deletedMessage);
-
-        trashJson["data"] = trashMessages;
-        await fs.writeFile("./db/trash.json", JSON.stringify(trashJson));
-    } else{
-        return "No se encontro el mensaje"
+        await sendToTrash(deletedMessage);
+        return "OK";
+    } else {
+        throw new Error("No se encontro el mensaje");
     }
-
-    return "OK"
 }
 
 export async function createMessages(newMessage: Message) {

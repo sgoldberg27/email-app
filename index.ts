@@ -37,12 +37,15 @@ app.get("/:usuario/api/messages/important", async (req, res) => {
 
 // Delete messages
 app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
-    try {
-        let id = req.params.id as string;
-        res.send(await deleteMessages(id));
-    } catch (error) {
-        console.error("Error deleting messages", error);
-        res.status(500).send("Internal server error");
+    let id = req.params.id as string;
+
+    let response = await deleteMessages(id);
+
+    if (response.length == 0) {
+        res.status(404).send("No se encontro el mensaje");
+    } else {
+    
+        res.send(response);
     }
 });
 
@@ -54,7 +57,7 @@ app.post("/:usuario/api/messages/important", async (req, res) => {
         let message = req.body as Message;
         res.send(await createMessages(message));
     } catch (error) {
-        console.error("Error getting folders", error);
-        res.status(500).send("Internal server error");
+        console.error("Error creating message", error);
+        res.status(400).send("Bad request");
     }
 });
