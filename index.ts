@@ -1,5 +1,6 @@
 import express from "express"
 import { getFolders, getMessages, deleteMessages, createMessages } from "./db";
+import type { Message } from "./db"; 
 
 const app = express()
 const port = 3000
@@ -23,9 +24,9 @@ app.get("/:usuario/api/folders", async (req, res) => {
 // Get the list of messages
 app.get("/:usuario/api/messages/important", async (req, res) => {
     try {
-        let from = req.query.from;
-        let to = req.query.to;
-        let subject = req.query.subject;
+        let from = req.query.from as string;
+        let to = req.query.to as string;
+        let subject = req.query.subject as string;
     
         res.send(await getMessages(from, to, subject));
     } catch (error) {
@@ -37,7 +38,7 @@ app.get("/:usuario/api/messages/important", async (req, res) => {
 // Delete messages
 app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
     try {
-        let id = req.params.id;
+        let id = req.params.id as string;
         res.send(await deleteMessages(id));
     } catch (error) {
         console.error("Error deleting messages", error);
@@ -50,7 +51,7 @@ app.use(express.json());
 // Create messages
 app.post("/:usuario/api/messages/important", async (req, res) => {
     try {
-        let message = req.body;
+        let message = req.body as Message;
         res.send(await createMessages(message));
     } catch (error) {
         console.error("Error getting folders", error);

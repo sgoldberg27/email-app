@@ -1,14 +1,14 @@
 import { promises as fs } from "fs";
 import { v4 as uuidv4 } from 'uuid';
 
-type Folder = {
+interface Folder {
     id: number;
     name: string;
     title: string;
     icon: string;
 };
 
-type Message = {
+export interface Message {
     id: string;
     from: {
         name: string;
@@ -43,7 +43,7 @@ export async function getFolders() {
 
 }
 
-export async function getMessages(from_name: any, to_name: any, subject: any) {
+export async function getMessages(from_name: string, to_name: string, subject: string) {
     const messagesFile = await fs.readFile("./db/important.json", "utf-8");
     const messagesJson = JSON.parse(messagesFile);
 
@@ -60,7 +60,7 @@ export async function getMessages(from_name: any, to_name: any, subject: any) {
     return filteredMessages;
 }
 
-export async function deleteMessages(id: any) {
+export async function deleteMessages(id: string) {
     const messagesFile = await fs.readFile("./db/important.json", "utf-8");
     const messagesJson = JSON.parse(messagesFile);
 
@@ -88,7 +88,7 @@ export async function deleteMessages(id: any) {
     return "OK"
 }
 
-export async function createMessages(newMessage: any) {
+export async function createMessages(newMessage: Message) {
     const importantFile = await fs.readFile("./db/important.json", "utf-8");
     const importantJson = JSON.parse(importantFile);
 
