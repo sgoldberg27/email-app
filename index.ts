@@ -1,9 +1,24 @@
 import express from "express"
 import { getFolders, getMessages, deleteMessages, createMessages, CustomError } from "./db";
-import type { Message } from "./db"; 
+import type { Message } from "./db";
+import multer from 'multer';
+
 
 const app = express()
 const port = 3000
+
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './attatchments')
+    },
+
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+})
+
+const upload = multer({ storage: storage })
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
@@ -32,8 +47,12 @@ app.get("/:usuario/api/messages/:folder", async (req, res) => {
 
         res.send(await getMessages(folder, from, to, subject));
     } catch (error) {
-        console.error("Error getting messages", error);
-        res.status(500).send("Internal server error");
+        console.error("Error creating message", error);
+        if (error instanceof CustomError) {
+            res.status(error.status).send(error.message);
+        } else {
+            res.status(500).send("Internal server error");
+        }
     }
 });
 
@@ -56,10 +75,12 @@ app.delete("/:usuario/api/messages/:folder/:id", async (req, res) => {
 app.use(express.json());
 
 // Create messages
-app.post("/:usuario/api/messages/:folder", async (req, res) => {
+app.post("/:usuario/api/messages/:folder", upload.array('attatchments'), async (req, res) => {
     try {
         let message = req.body as Message;
         let folder = req.params.folder as string;
+
+        const attatchments = req.files as Express.Multer.File[];
 
         res.send(await createMessages(folder, message));
     } catch (error) {

@@ -47,14 +47,23 @@ type Folder = {
 
 // Function to read the contents of a JSON file
 async function readFile(filePath: string) {
-    const dataFile = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(dataFile);
-
+    try {
+        const dataFile = await fs.readFile(filePath, "utf-8");
+        return JSON.parse(dataFile);
+    } catch (error) {
+        console.error("Error reading file", error);
+        throw new CustomError("La carpeta no existe", 404);
+    }
 }
 
 // Function to write a JSON file
 async function writeFile(filePath: string, data: any) {
-    await fs.writeFile(filePath, JSON.stringify(data));
+    try {
+        await fs.writeFile(filePath, JSON.stringify(data));
+    } catch (error) {
+        console.error("Error writing file", error);
+        throw new CustomError("La carpeta no existe", 404);
+    }
 }
 
 // Function to send a message to a specific folder
@@ -69,7 +78,7 @@ async function sendToFolder(folder: string, message: Message) {
 }
 
 // Function to delete a message from a folder
-async function deleteFromFolder(folder: string, id: string){
+async function deleteFromFolder(folder: string, id: string) {
     const folderJson = await readFile(`./db/${folder}.json`);
     const folderMessages = folderJson["data"] as Message[];
     const filteredMessages = folderMessages.filter((message) => message.id !== id);
@@ -90,9 +99,9 @@ export async function getMessages(folder: string, from_name: string, to_name: st
     const folderMessages = folderJson["data"] as Message[];
 
     const filteredMessages = folderMessages.filter((message) => {
-        const hasFromName = message.from.name.includes(from_name);
-        const hasToName = message.to.some((to) => to.name.includes(to_name));
-        const hasSubject = message.subject.includes(subject);
+        const hasFromName = !from_name || message.from.name.includes(from_name);
+        const hasToName = !to_name || message.to.some((to) => to.name.includes(to_name));
+        const hasSubject = !subject || message.subject.includes(subject);
 
         return hasFromName && hasToName && hasSubject;
     });
