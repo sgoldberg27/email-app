@@ -22,13 +22,15 @@ app.get("/:usuario/api/folders", async (req, res) => {
 
 
 // Get the list of messages
-app.get("/:usuario/api/messages/important", async (req, res) => {
+app.get("/:usuario/api/messages/:folder", async (req, res) => {
     try {
         let from = req.query.from as string;
         let to = req.query.to as string;
         let subject = req.query.subject as string;
-    
-        res.send(await getMessages(from, to, subject));
+        
+        let folder = req.params.folder as string;
+
+        res.send(await getMessages(folder, from, to, subject));
     } catch (error) {
         console.error("Error getting messages", error);
         res.status(500).send("Internal server error");
@@ -36,10 +38,11 @@ app.get("/:usuario/api/messages/important", async (req, res) => {
 });
 
 // Delete messages
-app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
+app.delete("/:usuario/api/messages/:folder/:id", async (req, res) => {
     try {
         let id = req.params.id as string;
-        res.send(await deleteMessages(id));
+        let folder = req.params.folder as string;
+        res.send(await deleteMessages(folder, id));
     } catch (error) {
         console.error("Error deleting message", error);
         if (error instanceof CustomError) {
@@ -53,10 +56,12 @@ app.delete("/:usuario/api/messages/important/:id", async (req, res) => {
 app.use(express.json());
 
 // Create messages
-app.post("/:usuario/api/messages/important", async (req, res) => {
+app.post("/:usuario/api/messages/:folder", async (req, res) => {
     try {
         let message = req.body as Message;
-        res.send(await createMessages(message));
+        let folder = req.params.folder as string;
+
+        res.send(await createMessages(folder, message));
     } catch (error) {
         console.error("Error creating message", error);
         if (error instanceof CustomError) {

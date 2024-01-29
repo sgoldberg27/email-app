@@ -63,8 +63,8 @@ export async function getFolders() {
 }
 
 // Function to get the list of messages that match the search criteria
-export async function getMessages(from_name: string, to_name: string, subject: string) {
-    const messagesJson = await readFile("./db/important.json");
+export async function getMessages(folder: string, from_name: string, to_name: string, subject: string) {
+    const messagesJson = await readFile(`./db/${folder}.json`);
     const messages = messagesJson["data"] as Message[];
 
     const filteredMessages = messages.filter((message) => {
@@ -90,8 +90,8 @@ async function sendToTrash(message: Message) {
 }
 
 // Function to delete a message
-export async function deleteMessages(id: string) {
-    const messagesJson = await readFile("./db/important.json");
+export async function deleteMessages(folder: string, id: string) {
+    const messagesJson = await readFile(`./db/${folder}.json`);
 
     const messages = messagesJson["data"] as Message[];
 
@@ -99,7 +99,7 @@ export async function deleteMessages(id: string) {
     const filteredMessages = messages.filter((message) => message.id !== id);
 
     messagesJson["data"] = filteredMessages;
-    await writeFile("./db/important.json", messagesJson);
+    await writeFile(`./db/${folder}.json`, messagesJson);
 
     if (deletedMessage) {
         await sendToTrash(deletedMessage);
@@ -110,19 +110,19 @@ export async function deleteMessages(id: string) {
 }
 
 // Function to create a message
-export async function createMessages(newMessage: Message) {
+export async function createMessages(folder: string, newMessage: Message) {
     newMessage["id"] = uuidv4();
     const validationResult = MessageSchema.safeParse(newMessage);
 
     if(validationResult.success) {
-        const importantJson = await readFile("./db/important.json");
+        const importantJson = await readFile(`./db/${folder}.json`);
 
         const importantMessages = importantJson["data"] as Message[];
 
         importantMessages.push(newMessage);
 
         importantJson["data"] = importantMessages;
-        await writeFile("./db/important.json", importantJson);
+        await writeFile(`./db/${folder}.json`, importantJson);
 
         return newMessage;
     } else {
