@@ -1,24 +1,11 @@
 import express from "express"
 import { getFolders, getMessages, deleteMessages, createMessages, CustomError } from "./db";
 import type { Message } from "./db";
-import multer from 'multer';
 import { Request, Response, NextFunction } from "express";
+
 
 const app = express()
 const port = 3000
-
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './attatchments')
-    },
-
-    filename: function (req, file, cb) {
-        cb(null, file.originalname)
-    }
-})
-
-const upload = multer({ storage: storage })
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
@@ -39,6 +26,11 @@ const handleErrors = (handler: (req: Request, res: Response, next: NextFunction)
         }
     }
 }
+
+interface RequestWithMessageId extends Request {
+    messageId?: string;
+}
+
 
 // Get all folders
 app.get("/:usuario/api/folders", handleErrors(async (req, res) => {
@@ -67,11 +59,9 @@ app.delete("/:usuario/api/messages/:folder/:id", handleErrors(async (req, res) =
 app.use(express.json());
 
 // Create messages
-app.post("/:usuario/api/messages/:folder", upload.array('attatchments'), handleErrors(async (req, res) => {
+app.post("/:usuario/api/messages/:folder", handleErrors(async (req: RequestWithMessageId, res) => {
     const message = req.body as Message;
     const folder = req.params.folder as string;
-
-    const attatchments = req.files as Express.Multer.File[];
 
     res.send(await createMessages(folder, message));
 }));

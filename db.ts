@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
-import { v4 as uuidv4 } from 'uuid';
 import { z } from "zod";
+import { v4 as uuidv4 } from 'uuid';
 
 // Class to create custom errors
 export class CustomError extends Error {
@@ -32,6 +32,13 @@ const MessageSchema = z.object({
     starred: z.boolean(),
     important: z.boolean(),
     hasAttachments: z.boolean(),
+    attachments: z.array(z.object({
+        type: z.string(),
+        fileName: z.string(),
+        preview: z.string(),
+        url: z.string(),
+        size: z.string(),
+    })).optional(),
     labels: z.array(z.string()),
 });
 
@@ -138,12 +145,14 @@ export async function deleteMessages(folder: string, id: string) {
     }
 }
 
+
 // Function to create a message
 export async function createMessages(folder: string, newMessage: Message) {
     newMessage["id"] = uuidv4();
     const validationResult = MessageSchema.safeParse(newMessage);
 
     if (validationResult.success) {
+
         await sendToFolder(folder, newMessage);
 
         if (newMessage.important && folder !== "important") {
